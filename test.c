@@ -1,23 +1,33 @@
 #include "fftautocorr.c"
 #include <fftw3.h>
+#include <time.h>
 
 #define ERR 1E-10
 
 int main(int argc, char *argv[]) {
     fftw_plan p;
-    int L = 8;
+    int L = 20;
     int N = 1 << L;
     double *in = fftw_malloc(N * sizeof(double));
     fftw_complex *out = fftw_malloc((N/2+1) * sizeof(fftw_complex));
+    clock_t t0 = clock(), t;
     p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE);
+    t = clock();
+    printf("FFTW planning time: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
 
-    printf("Testing rfft_forward_p2: ");
+    printf("Testing rfft_forward_p2:\n");
     for(int i=0; i<N; i++) {
         in[i] = (double)rand() / (double)(RAND_MAX);
         /* printf("%f\n", in[i]); */
     }
+    t0 = clock();
     fftw_execute(p);
-    rfft_forward_p2(in, L);
+    t = clock();
+    printf("FFTW executing: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
+    t0 = clock();
+    rfft_forward(in, L);
+    t = clock();
+    printf("rfft_forward executing: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
 
     if(fabs(out[0][0] - in[0]) > ERR || fabs(out[0][1]) > ERR) {
         printf("Test failed 0, diff=%g, %g\n", 

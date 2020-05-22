@@ -14,7 +14,8 @@
  * x[k] = c[2*k] + 1j*c[2*k+1] if 1 <= k < N/2 
  * x[k] = conj(x[N-k]) if k > N/2 
  * x[0] = c[0]; x[N/2] = c[1] */
-static void rfft_forward_p2(double * restrict c, int log2len) {
+static void rfft_forward_p2(double * restrict c, int log2len,
+                            double * restrict pool) {
     /* len of c is 1 << log2len */
     const size_t halflen = 1 << (log2len - 1);
     size_t t;
@@ -30,14 +31,14 @@ static void rfft_forward_p2(double * restrict c, int log2len) {
         return;
     }
     /* halflen >= 2, len(c) >= 4 */
-    ec = (double *)malloc(halflen * sizeof(double));
-    oc = (double *)malloc(halflen * sizeof(double));
+    ec = pool;
+    oc = pool + halflen;
     for(t = 0; t < halflen; t++) {
         ec[t] = c[2*t];
         oc[t] = c[2*t+1];
     }
-    rfft_forward_p2(ec, log2len - 1);
-    rfft_forward_p2(oc, log2len - 1);
+    rfft_forward_p2(ec, log2len - 1, c);
+    rfft_forward_p2(oc, log2len - 1, c+halflen);
     c[0] = ec[0] + oc[0];
     c[1] = ec[0] - oc[0];
     for(t = 2; t < halflen; t += 2) {
@@ -56,8 +57,12 @@ static void rfft_forward_p2(double * restrict c, int log2len) {
     }
     c[halflen] = ec[1];
     c[halflen+1] = -oc[1];
-    free(ec);
-    free(oc);
+}
+
+static void rfft_forward(double * restrict c, int log2len) {
+    double * pool = (double *) malloc(sizeof(double) * (1 << log2len));
+    rfft_forward_p2(c, log2len, pool);
+    free(pool);
 }
 
 int fftautocorr(double *in, size_t len) {
