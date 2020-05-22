@@ -1,0 +1,8 @@
+test
+fftautocorr
+
+*.out
+*.dSYM
+
+.vscode/
+
