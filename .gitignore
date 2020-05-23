@@ -1,6 +1,7 @@
 test
 fftautocorr
 
+*.o
 *.out
 *.dSYM
 

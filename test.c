@@ -1,6 +1,7 @@
-#include "fftautocorr.c"
+#include "fftautocorr.h"
 #include <fftw3.h>
 #include <time.h>
+#include <math.h>
 
 #define ERR 1E-10
 

@@ -9,5 +9,6 @@
 #include <stdlib.h>
 
 int fftautocorr(double *in, size_t len);
+int rfft_forward(double * c, int log2len);
 
 #endif /* ifndef FFTAUTOCORR_H */

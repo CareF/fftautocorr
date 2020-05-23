@@ -59,10 +59,14 @@ static void rfft_forward_p2(double * restrict c, int log2len,
     c[halflen+1] = -oc[1];
 }
 
-static void rfft_forward(double * restrict c, int log2len) {
+int rfft_forward(double * restrict c, int log2len) {
     double * pool = (double *) malloc(sizeof(double) * (1 << log2len));
+    if(pool == NULL) {
+        return -1;
+    }
     rfft_forward_p2(c, log2len, pool);
     free(pool);
+    return 0;
 }
 
 int fftautocorr(double *in, size_t len) {
