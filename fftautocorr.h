@@ -8,7 +8,11 @@
 
 #include <stdlib.h>
 
-int fftautocorr(double *in, size_t len);
-int rfft_forward(double * c, int log2len);
+struct autocorr_plan_i;
+typedef struct autocorr_plan_i * autocorr_plan;
+autocorr_plan make_autocorr_plan(size_t length);
+void destroy_autocorr_plan(autocorr_plan plan);
+size_t mem_len(autocorr_plan plan);
+int autocorr(autocorr_plan plan, double c[]);
 
 #endif /* ifndef FFTAUTOCORR_H */
