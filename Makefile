@@ -8,7 +8,7 @@ test: test.out
 	./test.out
 
 test.out : test.c fftautocorr.o  pocketfft.o
-	$(CC) $(CFLAGS) -lfftw3 -I/usr/local/include -L/usr/local/lib $^ -o $@
+	$(CC) $(CFLAGS) -lm -lfftw3 -I/usr/local/include -L/usr/local/lib $^ -o $@
 
 fftautocorr.o : fftautocorr.c fftautocorr.h
 	$(CC) $(CFLAGS) -c $< -o $@

@@ -13,7 +13,4 @@ because we have the freedom to pad zeros in the end.
 This piece of code is pure C and does a simple auto-correlation with
 FFT for real double inputs.
 
-Speed record
-============
-Everything here is tested roughly on Intel i7-9750H MacBook Pro, compiled with 
-clang 11.
+The FFT part of the program was cut from [pocketfft](https://gitlab.mpcdf.mpg.de/mtr/pocketfft)
