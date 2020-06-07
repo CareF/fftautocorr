@@ -15,7 +15,6 @@
 
 #include "fftautocorr.h"
 #include "factortable.h"
-#include "pocketfft/pocketfft.h"
 #define SQ(x) (x)*(x)
 #define SWAP(a,b,type) \
   do { type tmp_=(a); (a)=(b); (b)=tmp_; } while(0)

@@ -13,13 +13,13 @@ test.out : test.c fftautocorr.o  pocketfft.o
 fftautocorr.o : fftautocorr.c fftautocorr.h factortable.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-pocketfft.o : pocketfft/pocketfft.c pocketfft/pocketfft.h | pocketfft
+pocketfft.o : pocketfft/pocketfft.c pocketfft/pocketfft.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 factortable.h : tablegen.py
 	./tablegen.py $@
 
-pocketfft : 
+pocketfft/% : 
 	git clone https://gitlab.mpcdf.mpg.de/mtr/pocketfft.git
 
 .PHONY : clean
