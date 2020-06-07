@@ -6,11 +6,11 @@
 /*
  *  Main implementation file.
  *
- *  Copyright (C) 2004-2018 Max-Planck-Society
- *  \author Martin Reinecke
+ *  Copyright (C) 2020 CareF
+ *  \author CareF 
  */
 
-#include <math.h>  /* provide fma, don't require -lm */
+#include <math.h>
 #include <string.h>  /* provide memcpy */
 
 #include "fftautocorr.h"
