@@ -1,5 +1,6 @@
 #include "fftautocorr.h"
 #include "pocketfft/pocketfft.h"
+#include <stdio.h>
 #include <fftw3.h>
 #include <time.h>
 #include <math.h>
@@ -118,6 +119,7 @@ int testAgainst(int N) {
 
     destroy_autocorr_plan(p);
     free(inauto);
+    free(data);
     return 0;
 }
 
