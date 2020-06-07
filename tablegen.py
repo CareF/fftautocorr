@@ -50,4 +50,7 @@ static size_t find_factor(int n) {{
 
 
 if __name__ == "__main__":
-    print_as_c_header('factortable.h', tablegen(2**31-1))
+    import sys
+    filename = sys.argv[1]
+    print("Generating %s" % filename)
+    print_as_c_header(filename, tablegen(2**31-1))

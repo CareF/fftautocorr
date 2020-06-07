@@ -608,6 +608,8 @@ static int rfftp_backward(auto_plan plan, double c[], double fct) {
     return 0;
 }
 
+#ifdef NO_TABLE
+
 /**
  * @brief Factorize for plan
  * so that prod(plan->fct[:plan->nfct]) = plan->length >= 2 * plan->logiclen
@@ -639,6 +641,8 @@ static int rfftp_factorize (auto_plan plan) {
     return 0;
 }
 
+#else
+
 /**
  * @brief Factorize for plan using a built-in table
  * so that prod(plan->fct[:plan->nfct]) = plan->length >= 2 * plan->logiclen
@@ -648,7 +652,7 @@ static int rfftp_factorize (auto_plan plan) {
  * @return int 0 if success, -1 if failed
  */
 WARN_UNUSED_RESULT
-static int rfftp_factorize_table (auto_plan plan) { 
+static int rfftp_factorize (auto_plan plan) { 
     int length = find_factor(plan->logiclen*2);
     int nfct = 0;
     if(length == -1)
@@ -676,6 +680,8 @@ static int rfftp_factorize_table (auto_plan plan) {
     plan->nfct=nfct;
     return 0;
 }
+
+#endif
 
 static size_t rfftp_twsize(auto_plan plan) {
     size_t twsize=0, l1=1;
@@ -739,7 +745,7 @@ auto_plan make_autocorr_plan(size_t length) {
     plan->mem=NULL;
     for (int i=0; i<NFCT; ++i)
         plan->fct[i]=(fft_fctdata){0,0};
-    if(rfftp_factorize_table(plan)!=0) {
+    if(rfftp_factorize(plan)!=0) {
         free(plan); 
         return NULL; 
     }
