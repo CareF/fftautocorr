@@ -121,33 +121,6 @@ int testAgainst(int N) {
     return 0;
 }
 
-void testodd() {
-    int N = 5;
-    fftw_plan pr2c, pc2r;
-    double *data = malloc(N * sizeof(double));
-    for(int i=0; i<N; i++) {
-        data[i] = (double)rand() / (double)(RAND_MAX);
-        /* printf("%f\n", in[i]); */
-    }
-    double *infftw = fftw_malloc(N * sizeof(double));
-    fftw_complex *freq = fftw_malloc((N/2+1) * sizeof(fftw_complex));
-    pr2c = fftw_plan_dft_r2c_1d(N, infftw, freq, FFTW_ESTIMATE);
-    pc2r = fftw_plan_dft_c2r_1d(N, freq, infftw, FFTW_ESTIMATE);
-    rfft_plan pocketp = make_rfft_plan(N);
-    for(int i=0; i<N; i++) {
-        infftw[i] = data[i];
-    }
-    fftw_execute(pr2c);
-    rfft_forward(pocketp, data, 1);
-    for(int i=0; i<N/2+1; i++) {
-        printf("%f + i%f\n", freq[i][0], freq[i][1]);
-    }
-    putchar('\n');
-    for(int i=0; i<N; i++) {
-        printf("%f\n", data[i]);
-    }
-}
-
 int main(int argc, char *argv[]) {
     int Ls[] = {
         7,
