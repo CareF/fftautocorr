@@ -1,13 +1,13 @@
 CFLAGS += -Ofast -Wall
 
+LDLIBS += -lm
 ifeq ($(OS),Windows_NT)
 	CFLAGS += -D WIN32
 else 
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
 		CFLAGS += -D MAC
-		LDFLAGS += -L/usr/local/lib
-		LDLIBS += -lm -I/usr/local/include 
+		LDFLAGS += -L/usr/local/lib -I/usr/local/include 
 	else
 		# Assuming linux
 		LDLIBS += -lmvec
