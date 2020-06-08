@@ -1,14 +1,29 @@
 CFLAGS += -Ofast -Wall
 
+ifeq ($(OS),Windows_NT)
+	CFLAGS += -D WIN32
+else 
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Darwin)
+		CFLAGS += -D MAC
+		LDFLAGS += -L/usr/local/lib
+		LDLIBS += -lm -I/usr/local/include 
+	else
+		# Assuming linux
+		LDLIBS += -lmvec
+	endif
+endif
+
+
 .PHONY : test clean
-.DEFAULT : fftautocorr.o
+.DEFAULT_GOAL := fftautocorr.o
 .SECONDARY : fftautocorr.o
 
 test: test.out
 	./test.out
 
 test.out : test.c fftautocorr.o  pocketfft.o
-	$(CC) $(CFLAGS) -lm -lfftw3 -I/usr/local/include -L/usr/local/lib $^ -o $@
+	$(CC) $(CFLAGS) $(LDLIBS) -lfftw3 $(LDFLAGS) $^ -o $@
 
 fftautocorr.o : fftautocorr.c fftautocorr.h factortable.h
 	$(CC) $(CFLAGS) -c $< -o $@
