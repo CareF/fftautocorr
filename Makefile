@@ -23,7 +23,7 @@ test: test.out
 	./test.out
 
 test.out : test.c fftautocorr.o  pocketfft.o
-	$(CC) $(CFLAGS) $(LDLIBS) $(TESTFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ $(LDLIBS) $(TESTFLAGS) $(LDFLAGS) -o $@
 
 fftautocorr.o : fftautocorr.c fftautocorr.h factortable.h
 	$(CC) $(CFLAGS) -c $< -o $@
