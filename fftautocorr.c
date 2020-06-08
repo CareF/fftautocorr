@@ -527,18 +527,14 @@ static void copy_and_norm(double *c, double *p1, int n, double fct)
   }
 
 WARN_UNUSED_RESULT
-static int rfftp_forward(auto_plan plan, double c[], double fct) {
+static int rfftp_forward(auto_plan plan, double c[], 
+                         double fct, double *mem) {
     if(plan->length == 1)
         return 0;
     int n = plan->length;
     int l1 = n, nf = plan->nfct;
-    double *p1, *p2;
+    double *p1 = c, *p2 = mem;
     int k1;
-    double *ch = (double *)malloc(n * sizeof(double));
-    if(!ch)
-        return -1;
-    p1 = c;
-    p2 = ch;
 
     for(k1 = 0; k1 < nf; ++k1) {
         int k=nf-k1-1;
@@ -564,22 +560,17 @@ static int rfftp_forward(auto_plan plan, double c[], double fct) {
         SWAP (p1, p2, double *);
     }
     copy_and_norm(c,p1,n,fct);
-    free(ch);
     return 0;
 }
 
 WARN_UNUSED_RESULT
-static int rfftp_backward(auto_plan plan, double c[], double fct) {
+static int rfftp_backward(auto_plan plan, double c[], 
+                          double fct, double *mem) {
     if(plan->length == 1)
         return 0;
     int n = plan->length;
     int l1 = 1, nf = plan->nfct;
-    double *p1, *p2;
-    double *ch = (double *)malloc(n * sizeof(double));
-    if(!ch)
-        return -1;
-    p1 = c;
-    p2 = ch;
+    double *p1 = c, *p2 = mem;
 
     for(int k = 0; k < nf; k++) {
         int ip = plan->fct[k].fct, ido = n / (ip*l1);
@@ -603,7 +594,6 @@ static int rfftp_backward(auto_plan plan, double c[], double fct) {
         l1 *= ip;
     }
     copy_and_norm(c,p1,n,fct);
-    free(ch);
     return 0;
 }
 
@@ -771,7 +761,11 @@ size_t mem_len(auto_plan plan) {
 }
 
 int autocorr(auto_plan plan, double c[]) {
-    if(rfftp_forward(plan, c, 1) != 0)
+    double *mem = (double *) malloc(mem_len(plan) * sizeof(double));
+    if(!mem) {
+        return -1;
+    }
+    if(rfftp_forward(plan, c, 1, mem) != 0)
         return -1;
     c[0] = SQ(c[0]);
     for (int i = 1; 2 * i < mem_len(plan); i++) {
@@ -780,7 +774,8 @@ int autocorr(auto_plan plan, double c[]) {
     }
     if(mem_len(plan) % 2 == 0)
         c[mem_len(plan) - 1] = SQ(c[mem_len(plan) - 1]);
-    if(rfftp_backward(plan, c, 1.0/mem_len(plan)) != 0)
+    if(rfftp_backward(plan, c, 1.0/mem_len(plan), mem) != 0)
         return -1;
+    free(mem);
     return 0;
 }
