@@ -15,6 +15,13 @@ with complicated dividing-and-conquer strategies, which is not necessary for
 auto-correlation purposes because we have the freedom for choosing the padding
 length. 
 
+## Usage
+
+For a single shot of auto-correlation calculation, `autocorr` function is a one
+stop solution. For multiple runs, this is also a good guideline for how to break
+the routine down and to provide a plan and a memory pool to optimize the
+calculation.
+
 ## Acknowledgment
 
 The FFT part of the program was modified from

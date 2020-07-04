@@ -757,22 +757,49 @@ size_t mem_len(auto_plan plan) {
     return plan->length;
 }
 
-int autocorr(auto_plan plan, double c[]) {
-    double *mem = (double *) malloc(mem_len(plan) * sizeof(double));
-    if(!mem) {
+int autocorr_mem(autocorr_plan plan, double data[], double *mempool) {
+    if(rfftp_forward(plan, data, 1, mempool) != 0)
         return -1;
-    }
-    if(rfftp_forward(plan, c, 1, mem) != 0)
-        return -1;
-    c[0] = SQ(c[0]);
+    data[0] = SQ(data[0]);
     for (int i = 1; 2 * i < mem_len(plan); i++) {
-        c[2*i - 1] = SQ(c[2*i - 1]) + SQ(c[2*i]);
-        c[2*i] = 0;
+        data[2*i - 1] = SQ(data[2*i - 1]) + SQ(data[2*i]);
+        data[2*i] = 0;
     }
     if(mem_len(plan) % 2 == 0)
-        c[mem_len(plan) - 1] = SQ(c[mem_len(plan) - 1]);
-    if(rfftp_backward(plan, c, 1.0/mem_len(plan), mem) != 0)
+        data[mem_len(plan) - 1] = SQ(data[mem_len(plan) - 1]);
+    if(rfftp_backward(plan, data, 1.0/mem_len(plan), mempool) != 0)
         return -1;
-    free(mem);
+    return 0;
+}
+
+int autocorr_p(auto_plan plan, double data[]) {
+    int result;
+    double *mempool = (double *) malloc(mem_len(plan) * sizeof(double));
+    if(!mempool) {
+        return -1;
+    }
+    result = autocorr_mem(plan, data, mempool);
+    free(mempool);
+    return result;
+}
+
+int autocorr(double data[], size_t length) {
+    autocorr_plan plan = make_autocorr_plan(length);
+    double *fftauto = malloc(mem_len(plan) * sizeof(double));
+    int i;
+    for(i = 0; i < length; i++) {
+        fftauto[i] = data[i];
+    }
+    for(; i < mem_len(plan); i++) {
+        fftauto[i] = 0;
+    }
+    if (autocorr_p(plan, fftauto) != 0) {
+        destroy_autocorr_plan(plan);
+        return -1;
+    }
+    for(i = 0; i < length; i++) {
+        data[i] = fftauto[i];
+    }
+    destroy_autocorr_plan(plan);
     return 0;
 }

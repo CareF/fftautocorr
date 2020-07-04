@@ -25,30 +25,17 @@ int testAgainst(int N) {
         data[i] = (double)rand() / (double)(RAND_MAX);
         /* printf("%f\n", in[i]); */
     }
-
     clock_t t0, t;
-    printf("Planning:\n");
+    printf("Testing auto-correlation for length %d:\n", N);
+
     t0 = clock();
+    /* Calculate auto-correlation using FFTW */
     double *infftw = fftw_malloc(2 * N * sizeof(double));
     fftw_complex *freq = fftw_malloc((N+1) * sizeof(fftw_complex));
     pr2c = fftw_plan_dft_r2c_1d(2*N, infftw, freq, FFTW_ESTIMATE);
     pc2r = fftw_plan_dft_c2r_1d(2*N, freq, infftw, FFTW_ESTIMATE);
     t = clock();
     printf("FFTW planning time: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
-
-    t0 = clock();
-    autocorr_plan p = make_autocorr_plan(N);
-    double *inauto = malloc(mem_len(p) * sizeof(double));
-    t = clock();
-    printf("autocorr planning: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
-
-    t0 = clock();
-    rfft_plan pocketp = make_rfft_plan(2 * N);
-    double *pocketc = malloc(2 * N * sizeof(double));
-    t = clock();
-    printf("pocketfft planning time: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
-
-    printf("Testing:\n");
     t0 = clock();
     for(int i=0; i<N; i++) {
         infftw[i] = data[i];
@@ -66,8 +53,14 @@ int testAgainst(int N) {
         infftw[i] /= (2*N);
     }
     t = clock();
-    printf("FFTW execution: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
+    printf("FFTW execution time: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
 
+    t0 = clock();
+    /* Calculate auto-correlation using pocketfft */
+    rfft_plan pocketp = make_rfft_plan(2 * N);
+    double *pocketc = malloc(2 * N * sizeof(double));
+    t = clock();
+    printf("pocketfft planning time: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
     t0 = clock();
     for(int i=0; i<N; i++) {
         pocketc[i] = data[i];
@@ -90,30 +83,37 @@ int testAgainst(int N) {
         return -1;
     }
     t = clock();
-    printf("pocketfft execution: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
+    printf("pocketfft execution time: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
 
     t0 = clock();
+    /* Calculate auto-correlation using fftautocorr */
+    autocorr_plan fftauto_plan = make_autocorr_plan(N);
+    double *fftauto = malloc(mem_len(fftauto_plan) * sizeof(double));
+    t = clock();
+    printf("autocorr planning time: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
+    t0 = clock();
     for(int i=0; i<N; i++) {
-        inauto[i] = data[i];
+        fftauto[i] = data[i];
     }
-    for(int i=N; i<mem_len(p); i++) {
-        inauto[i] = 0;
+    for(int i=N; i<mem_len(fftauto_plan); i++) {
+        fftauto[i] = 0;
     }
-    if(autocorr(p, inauto) != 0) {
+    if(autocorr_p(fftauto_plan, fftauto) != 0) {
         printf("Autocorr executing failed.\n");
         return -1;
     }
     t = clock();
-    printf("autocorr execution: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
+    printf("autocorr execution time: %g s\n", (t-t0)/(double)CLOCKS_PER_SEC);
 
+    /* Estimate error */
     error = 0;
     for(int i=0; i < N; i++) {
-        if(fabs(infftw[i] - inauto[i]) > ERR) {
+        if(fabs(infftw[i] - fftauto[i]) > ERR) {
             printf("Test failed %d, diff = %g\n", i,
-                   infftw[i] - inauto[i]);
+                   infftw[i] - fftauto[i]);
             return -1;
         }
-        error += SQ(infftw[i] - inauto[i]);
+        error += SQ(infftw[i] - fftauto[i]);
     }
     printf("Succeed. total avg err = %g\n", sqrt(error) / N);
 
@@ -125,8 +125,8 @@ int testAgainst(int N) {
     destroy_rfft_plan(pocketp);
     free(pocketc);
 
-    destroy_autocorr_plan(p);
-    free(inauto);
+    destroy_autocorr_plan(fftauto_plan);
+    free(fftauto);
     free(data);
     return 0;
 }
