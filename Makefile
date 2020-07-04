@@ -1,3 +1,15 @@
+# This file is part of fftautocorr
+# 
+# Copyright (C) 2020 CareF
+# Author: CareF
+# Licensed under a 3-clause BSD style license - see LICENSE.md
+#
+# The library is intended to be used at source code level. FFTW and pocketfft
+# dependencies is introduced only for testing purposes.
+#
+# The Makefile is presented as a demo of compilation and as infrastructure
+# for testing purposes. Compilation settings may vary depending on the platform.
+
 CFLAGS += -O3 -Wall
 
 TESTFLAGS += -lfftw3

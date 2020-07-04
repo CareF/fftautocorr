@@ -6,4 +6,5 @@ fftautocorr
 *.dSYM
 
 .vscode/
+pocketfft/
 

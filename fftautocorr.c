@@ -25,6 +25,7 @@
 
 /* sin/cos related */
 
+/* We avoid using cos here to decrease float truncation error. */
 #define cosm1(x) (-2 * SQ(sin((x)/2))) /**< cos(x) - 1 */
 
 NOINLINE static void calc_first_octant(int den, double * restrict res) {
