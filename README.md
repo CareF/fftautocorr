@@ -1,4 +1,4 @@
-A auto-correlation calculator based on FFT
+An auto-correlation calculator based on FFT
 ==========================================
 
 This is a plain C implementation for calculating auto-correlation of real 
