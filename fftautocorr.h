@@ -1,6 +1,9 @@
 /* 
- * This file is part of fftautocorr
- * Licensed under a 3-clause BSD style licnese
+ *  This file is part of fftautocorr
+ *
+ *  Copyright (C) 2020 CareF
+ *  \author CareF 
+ *  Licensed under a 3-clause BSD style license - see LICENSE.md
  */
 
 #ifndef FFTAUTOCORR_H

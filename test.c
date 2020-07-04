@@ -1,3 +1,11 @@
+/*
+ * Intigration test for fftautocorr, compared with FFTW and pocketfft
+ * 
+ *  Copyright (C) 2020 CareF
+ *  \author CareF 
+ *  Licensed under a 3-clause BSD style license - see LICENSE.md
+ */
+
 #include "fftautocorr.h"
 #include "pocketfft/pocketfft.h"
 #include <stdio.h>

@@ -1,6 +1,5 @@
-CFLAGS += -Ofast -Wall
+CFLAGS += -O3 -Wall
 
-LDLIBS += -lm
 TESTFLAGS += -lfftw3
 ifeq ($(OS),Windows_NT)
 	echo Win not tested!
@@ -23,7 +22,7 @@ test: test.out
 	./test.out
 
 test.out : test.c fftautocorr.o  pocketfft.o
-	$(CC) $(CFLAGS) $^ $(LDLIBS) $(TESTFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(CFLAGS) $(LDLIBS) $(TESTFLAGS) $(LDFLAGS) $^ -o $@
 
 fftautocorr.o : fftautocorr.c fftautocorr.h factortable.h
 	$(CC) $(CFLAGS) -c $< -o $@

@@ -1,13 +1,9 @@
 /*
- * This file is part of pocketfft.
- * Licensed under a 3-clause BSD style license - see LICENSE.md
- */
-
-/*
- *  Main implementation file.
+ *  This file is part of fftautocorr
  *
  *  Copyright (C) 2020 CareF
  *  \author CareF 
+ *  Licensed under a 3-clause BSD style license - see LICENSE.md
  */
 
 #include <math.h>

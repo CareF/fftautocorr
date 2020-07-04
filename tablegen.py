@@ -1,11 +1,24 @@
 #! /usr/bin/env python3
 # -*- coding:utf-8 -*-
+"""
+This file is part of fftautocorr
+
+Copyright (C) 2020 CareF
+author: CareF
+Licensed under a 3-clause BSD style license - see LICENSE.md
+
+The script generates a table for the optimized padded length for FFT.
+Running this script is part of pre-compilation. See Makefile for details.
+"""
 
 import os
 import numpy as np
 
 
 def tablegen(intmax, ps=(2, 3, 5)):
+    """
+    Generate a composite number table < intmax with prime composition in [ps]
+    """
     logL = np.log2(intmax)
     allp = 1
     for p in ps:
