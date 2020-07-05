@@ -32,6 +32,10 @@ calculation.
   thread, but can be shared for different run of the same thread with out the
   need of initialization again.
 
+## Compiler 
+
+This code require gcc >= 5.4 or clang >= 7.0. Smaller version is not tested.
+
 ## Acknowledgment
 
 The FFT part of the program was modified from
