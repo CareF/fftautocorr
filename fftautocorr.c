@@ -169,16 +169,15 @@ typedef struct fft_fctdata {
 /**
  * @brief The struct for a rfft plan
  */
-typedef struct auto_plan_i {
-    int length;            /**< the length for the FFT algorithm, 
-                            *   >= 2*auto_plan_i#logiclen */
+typedef struct autocorr_plan_i {
+    int memlen;            /**< the length for the FFT algorithm, 
+                            *   >= 2*autocorr_plan_i#datalen */
     int nfct;              /**< number of seperation factors */
-    int logiclen;          /**< the logical length, length of the original
+    int datalen;          /**< the logical length, length of the original
                             *   array for autocorrelation */
     double *mem;           /**< the memory pool for fct[i].tw */
     fft_fctdata fct[NFCT]; /**< the factors for each FFT seperation */
-} auto_plan_i;
-typedef struct auto_plan_i * auto_plan;
+} autocorr_plan_i;
 
 #define WA(x,i) wa[(i)+(x)*(ido-1)]
 #define PM(a,b,c,d) { a=c+d; b=c-d; }
@@ -507,28 +506,37 @@ NOINLINE static void radb5(int ido, int l1, const double * restrict cc,
 #undef MULPM
 #undef WA
 
-static void copy_and_norm(double *c, double *p1, int n, double fct)
-  {
-  if (p1!=c)
-    {
-    if (fct!=1.)
-      for (int i=0; i<n; ++i)
-        c[i] = fct*p1[i];
-    else
-      memcpy (c,p1,n*sizeof(double));
+static void copy_and_norm(double *c, double *p1, int n, double fct) {
+    if(p1 != c) {
+        if(fct != 1.) {
+            for(int i=0; i<n; ++i)
+                c[i] = fct*p1[i];
+        }
+        else {
+            memcpy (c,p1,n*sizeof(double));
+        }
     }
-  else
-    if (fct!=1.)
-      for (int i=0; i<n; ++i)
-        c[i] *= fct;
-  }
+    else if(fct != 1.) {
+        for(int i=0; i<n; ++i)
+            c[i] *= fct;
+    }
+}
 
+/**
+ * @brief Calculate forward rFFT
+ * 
+ * @param plan 
+ * @param c 
+ * @param fct 
+ * @param mem 
+ * @return WARN_UNUSED_RESULT 
+ */
 WARN_UNUSED_RESULT
-static int rfftp_forward(auto_plan plan, double c[], 
+static int rfftp_forward(autocorr_plan plan, double c[], 
                          double fct, double *mem) {
-    if(plan->length == 1)
+    if(plan->memlen == 1)
         return 0;
-    int n = plan->length;
+    int n = plan->memlen;
     int l1 = n, nf = plan->nfct;
     double *p1 = c, *p2 = mem;
     int k1;
@@ -560,12 +568,21 @@ static int rfftp_forward(auto_plan plan, double c[],
     return 0;
 }
 
+/**
+ * @brief Calculate backward rFFT
+ * 
+ * @param plan 
+ * @param c 
+ * @param fct 
+ * @param mem 
+ * @return WARN_UNUSED_RESULT 
+ */
 WARN_UNUSED_RESULT
-static int rfftp_backward(auto_plan plan, double c[], 
+static int rfftp_backward(autocorr_plan plan, double c[], 
                           double fct, double *mem) {
-    if(plan->length == 1)
+    if(plan->memlen == 1)
         return 0;
-    int n = plan->length;
+    int n = plan->memlen;
     int l1 = 1, nf = plan->nfct;
     double *p1 = c, *p2 = mem;
 
@@ -598,31 +615,31 @@ static int rfftp_backward(auto_plan plan, double c[],
 
 /**
  * @brief Factorize for plan
- * so that prod(plan->fct[:plan->nfct]) = plan->length >= 2 * plan->logiclen
+ * so that prod(plan->fct[:plan->nfct]) = plan->memlen >= 2 * plan->datalen
  * 
  * @param[in] plan 
  * @return int 0 if success, -1 if failed
  */
 WARN_UNUSED_RESULT
-static int rfftp_factorize (auto_plan plan) { 
+static int rfftp_factorize (autocorr_plan plan) { 
     int length=1;
     int nfct=0;
-    while(length < 2 * plan->logiclen) {
+    while(length < 2 * plan->datalen) {
         if(nfct >= NFCT) 
             return -1; 
         plan->fct[nfct++].fct=4;
         length <<= 2;
     }
-    if(length >= 4 * plan->logiclen) {
+    if(length >= 4 * plan->datalen) {
         plan->fct[0].fct = 2;
         length >>= 1;
     }
     int n3 = nfct-1;
-    while(n3 >= 1 && length >= 8.0 * plan->logiclen / 3) {
+    while(n3 >= 1 && length >= 8.0 * plan->datalen / 3) {
         plan->fct[n3--].fct = 3;
         length = length / 4 * 3;
     }
-    plan->length = length;
+    plan->memlen = length;
     plan->nfct=nfct;
     return 0;
 }
@@ -631,19 +648,19 @@ static int rfftp_factorize (auto_plan plan) {
 
 /**
  * @brief Factorize for plan using a built-in table
- * so that prod(plan->fct[:plan->nfct]) = plan->length >= 2 * plan->logiclen
- * and plan->length is the minimum of such that is a composite of 2, 3, 4, 5
+ * so that prod(plan->fct[:plan->nfct]) = plan->memlen >= 2 * plan->datalen
+ * and plan->memlen is the minimum of such that is a composite of 2, 3, 4, 5
  * 
  * @param[in] plan 
- * @return int 0 if success, -1 if failed
+ * @return 0 if success, -1 if failed
  */
 WARN_UNUSED_RESULT
-static int rfftp_factorize (auto_plan plan) { 
-    int length = find_factor(plan->logiclen*2);
+static int rfftp_factorize (autocorr_plan plan) { 
+    int length = find_factor(plan->datalen*2);
     int nfct = 0;
     if(length == -1)
         return -1;
-    plan->length = length;
+    plan->memlen = length;
     while (length % 4 == 0) {
         plan->fct[nfct++].fct = 4;
         length >>= 2;
@@ -669,18 +686,31 @@ static int rfftp_factorize (auto_plan plan) {
 
 #endif
 
-static size_t rfftp_twsize(auto_plan plan) {
+/**
+ * @brief The total length of the memory needed to store the twiddle factors
+ *        for the real FFT calculation.
+ * 
+ * @param[in] plan The plan to compute the twiddle factors for.
+ * @return Number of double float twiddle factors for the plan
+ */
+static size_t rfftp_twsize(autocorr_plan plan) {
     size_t twsize=0, l1=1;
     for(int k = 0; k < plan->nfct - 1; ++k) {
-        int ip = plan->fct[k].fct, ido = plan->length / (l1*ip);
+        int ip = plan->fct[k].fct, ido = plan->memlen / (l1*ip);
         twsize += (ip - 1) * (ido - 1);
         l1 *= ip;
     }
     return twsize;
 }
 
-WARN_UNUSED_RESULT NOINLINE static int rfftp_comp_twiddle (auto_plan plan) {
-    int length=plan->length;
+/**
+ * @brief Compute the twiddle factors for a plan
+ * 
+ * @param[in,out] plan The plan to compute the twiddle factors for
+ * @return 0 for success, -1 for fail.
+ */
+WARN_UNUSED_RESULT NOINLINE static int rfftp_comp_twiddle (autocorr_plan plan) {
+    int length=plan->memlen;
     double *twid = (double *)malloc(2*length * sizeof(double)), *ptr;
     int l1=1, k;
     if(twid == NULL) 
@@ -709,24 +739,17 @@ WARN_UNUSED_RESULT NOINLINE static int rfftp_comp_twiddle (auto_plan plan) {
     return 0;
 }
 
-NOINLINE static void destroy_rfftp_plan (auto_plan plan) {
-    free(plan->mem);
-    plan->mem = NULL;
-    free(plan);
-    plan = NULL;
-}
-
 
 /* AUTOCORR IMPLEMENTATION */
 
-auto_plan make_autocorr_plan(size_t length) {
-    auto_plan plan;
+autocorr_plan make_autocorr_plan(size_t length) {
+    autocorr_plan plan;
     if(length==0) 
         return NULL;
-    plan = (auto_plan)malloc(sizeof(auto_plan_i));
+    plan = (autocorr_plan)malloc(sizeof(autocorr_plan_i));
     if(!plan) 
         return NULL;
-    plan->logiclen = length;
+    plan->datalen = length;
     plan->nfct=0;
     plan->mem=NULL;
     for (int i=0; i<NFCT; ++i)
@@ -749,12 +772,19 @@ auto_plan make_autocorr_plan(size_t length) {
     return plan;
 }
 
-void destroy_autocorr_plan(auto_plan plan) {
-    destroy_rfftp_plan(plan);
+void destroy_autocorr_plan(autocorr_plan plan) {
+    free(plan->mem);
+    plan->mem = NULL;
+    free(plan);
+    plan = NULL;
 }
 
-size_t mem_len(auto_plan plan) {
-    return plan->length;
+size_t mem_len(autocorr_plan plan) {
+    return plan->memlen;
+}
+
+size_t data_len(autocorr_plan plan) {
+    return plan->datalen;
 }
 
 int autocorr_mem(autocorr_plan plan, double data[], double *mempool) {
@@ -772,7 +802,7 @@ int autocorr_mem(autocorr_plan plan, double data[], double *mempool) {
     return 0;
 }
 
-int autocorr_p(auto_plan plan, double data[]) {
+int autocorr_p(autocorr_plan plan, double data[]) {
     int result;
     double *mempool = (double *) malloc(mem_len(plan) * sizeof(double));
     if(!mempool) {

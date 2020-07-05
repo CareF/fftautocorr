@@ -22,6 +22,16 @@ stop solution. For multiple runs, this is also a good guideline for how to break
 the routine down and to provide a plan and a memory pool to optimize the
 calculation.
 
+- `auto_plan` contains information about the dividing strategy for FFT. 
+   It's thread safe, meaning a plan can be shared among different threads, 
+   because everything in it is determined by the length of the array and is
+   constant during FFT. 
+- Besides an `auto_plan`, `autocorr_mem` also requires a `mempool`, whose length
+  is determined by `mem_len(plan)`. This is the memory needed for FFT. The
+  memory is **not** thread-safe and need to be created separately for different
+  thread, but can be shared for different run of the same thread with out the
+  need of initialization again.
+
 ## Acknowledgment
 
 The FFT part of the program was modified from
