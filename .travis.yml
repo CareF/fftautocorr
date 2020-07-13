@@ -11,6 +11,7 @@ addons:
             - doxygen-latex
             - doxygen-gui
             - graphviz
+            - python3-numpy
 install:
     - cd ${TRAVIS_BUILD_DIR}
     - make
