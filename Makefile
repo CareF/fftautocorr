@@ -1,5 +1,5 @@
 # This file is part of fftautocorr
-# 
+#
 # Copyright (C) 2020 CareF
 # Author: CareF
 # Licensed under a 3-clause BSD style license - see LICENSE.md
@@ -15,10 +15,10 @@ CFLAGS += -O3 -Wall
 TESTFLAGS += -lfftw3
 ifeq ($(OS),Windows_NT)
 	echo Win not tested!
-else 
+else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
-		TESTFLAGS += -L/usr/local/lib -I/usr/local/include 
+		TESTFLAGS += -L/usr/local/lib -I/usr/local/include
 	else
 		# Assuming linux
 		LDLIBS += -lm
@@ -36,6 +36,12 @@ test: test.out
 test.out : test.c fftautocorr.o  pocketfft.o
 	$(CC) $(CFLAGS) $^ $(LDLIBS) $(TESTFLAGS) $(LDFLAGS) -o $@
 
+profile: profile.out
+	./profile.out 5
+
+profile.out : profile.c fftautocorr.o
+	$(CC) $(CFLAGS) $^ $(LDLIBS) $(TESTFLAGS) $(LDFLAGS) -o $@
+
 fftautocorr.o : fftautocorr.c fftautocorr.h factortable.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -45,7 +51,7 @@ pocketfft.o : pocketfft/pocketfft.c pocketfft/pocketfft.h
 factortable.h : tablegen.py
 	./tablegen.py $@
 
-pocketfft/% : 
+pocketfft/% :
 	git clone https://gitlab.mpcdf.mpg.de/mtr/pocketfft.git
 
 .PHONY : clean
